@@ -2,19 +2,16 @@ const {start, stop, post} = require('./gsm.js');
 const getPosition= require('./gps.js');
 
 let count = 0;
-let Port;
 
-
-    start().then(startPort => {
-        Port = startPort;
+    start().then(port => {
         
-            getPosition(Port).then(pos => {
+            getPosition(port).then(pos => {
                 console.log("POS: ",pos);
-                setInterval(() => {
-                    getPosition(Port).then(pos => {
-                        console.log("POS: ",pos);
+                setTimeout(() => {
+                    getPosition(port).then(pos => {
+                        console.log(pos);
                     });
-                },10000);
+                }, 10000);
             }).catch(error => console.log(error));
        
     });

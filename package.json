@@ -9,5 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "raspi": "^6.0.1",
+    "raspi-gpio": "^6.2.2",
+    "serialport": "^8.0.6"
   }
 }

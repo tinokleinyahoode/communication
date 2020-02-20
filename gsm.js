@@ -12,20 +12,30 @@ const COMMANDS = [
     'AT+HTTPREAD=0,'
 ];
 
-const START_COMMANDS = [
+let START_COMMANDS = [
     'AT+SAPBR=1,1',
     'AT+SAPBR=2,1',
     'AT+HTTPINIT'
 ]
 
 const STOP_COMMANDS = [
-    // 'AT+HTTPTERM',
-    'AT+SAPBR=0,1'
+    'AT+SAPBR=0,1',
+    'AT+HTTPTERM'
 ]
 
-let errorCount = 0;
+let STOP_COMMANDS_RESTART = [];
+let USED_COMMANDS = [];
+
+let COMMANDSRESET = COMMANDS.slice();
+let START_COMMANDS_RESET = START_COMMANDS.slice();
+let STOP_COMMANDS_RESET = STOP_COMMANDS.slice();
+
+let error_count = 0;
 let startCount = 0;
-let result, bytes, port, parser, currentCommand;
+let result, bytes, command, currentCommand;
+
+const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
+const parser = port.pipe(new Readline({}), { autoOpen: true }); //{ delimiter: '\r\n' }
 
 start = () => {
     // console.log("function: ",'start');
@@ -34,30 +44,27 @@ start = () => {
             const output = new gpio.DigitalOutput('P1-31');
             output.write(gpio.HIGH);
 
-            port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
-            parser = port.pipe(new Readline()); //{ delimiter: '\r\n' }
-
             setTimeout(() => {
                 output.write(gpio.LOW);
+                command = 'start';
                 write(START_COMMANDS[0]); 
             }, 1000);
 
             parser.on('data', data => {
-                let response = evaluate(data, 'start');
-                if(response == 'started'){
-                    resolve(port);
-                }
+                let response = evaluate(data);
+                if(response === 'started') resolve(port);
             });
             
     })
 };
 
-stop = () => {
+const stop = () => {
     // console.log("function: ",'stop');
     return new Promise((resolve, reject) => {
         write(STOP_COMMANDS[0]);
         parser.on('data', data => {  
-            let response = evaluate(data, 'stop');
+            command = 'stop';
+            let response = evaluate(data);
             resolve(response);
         });
     });
@@ -81,42 +88,47 @@ const write = (cmd, params = '', option = '') => {
     }
 };
 
-const evaluate = (data, commands) => {
-    // console.log("commands: ",commands);
+const evaluate = (data) => {
+    // console.log("command: ",command);
         console.log("< ",data);
-        switch(commands){
-            case 'start':
-                com = START_COMMANDS;
-                break;
-            case 'stop':
-                com = STOP_COMMANDS;
-                break;
-            case 'post':
-                com = COMMANDS;
-                break;
-        }
+        if(command === 'start') com = START_COMMANDS;
+        if(command === 'stop') com = STOP_COMMANDS;
+        if(command === 'post') com = COMMANDS;
+        if(command === 'stop_restart') com = STOP_COMMANDS_RESTART; 
         
         if(startCount == 0) { currentCommand = com.shift(); startCount++; };
+
+        // error handling
+        USED_COMMANDS.push(currentCommand);
+
         let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'OK'];  
         switch (includesAny(data, availableResponses)) {
             case 'OK':
-                if(commands == 'start'){
+                if(command === 'start'){
+                    error_count = 0;
                     if(com.length != 0){
-                        currentCommand = com[0]
-                        write(com.shift());
+                        currentCommand = com.shift();
+                        write(currentCommand);
                     }else{
                         return 'started';
                     }    
 
-                }else if(commands == 'stop'){
+                }else if(command === 'stop' || command === 'stop_restart'){
                     if(com.length != 0){
-                        currentCommand = com[0]
-                        write(com.shift());
+                        currentCommand = com.shift();
+                        write(currentCommand);
                     }else{
-                        parser = null;
-                        return 'stopped';
-                    }   
-                }else if(commands == 'post'){
+                        if(command === 'stop_restart'){
+                            command = 'start';
+                            startCount = 0;
+                            USED_COMMANDS = [];
+                            write(START_COMMANDS[0]);
+                        }else{
+                            return 'stopped';
+                        }
+                        
+                    } 
+                }else if(command == 'post'){
 
                     if(currentCommand != 'AT+HTTPACTION=1' && currentCommand != 'AT+HTTPPARA="CONTENT","application/json"'){
                         
@@ -145,15 +157,22 @@ const evaluate = (data, commands) => {
                 write(currentCommand, param);
                 break;
             case 'ERROR':
-                // if(commands == 'start'){
-                //     write('AT+HTTPTERM');
-                //     // write('AT+SAPBR=0,1');
-                // }else{
+                if (error_count < 5) {
+                    error_count++;
                     write(currentCommand);
-                // }
-                
-                // write('AT+SAPBR=0,1');
-                // port.close();
+                }else{	
+                    if(command === 'start') {
+                        START_COMMANDS = START_COMMANDS_RESET.slice();
+                        command = 'stop_restart';
+                        error_count = 0;
+
+                        if(includesAny('AT+SAPBR=1,1', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+SAPBR=0,1');
+                        if(includesAny('AT+HTTPINIT', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+HTTPTERM');
+                        write(STOP_COMMANDS_RESTART.shift());
+                    }else if(command == 'stop'){
+
+                    }
+                }
                 break;
             // default:
                 // if(currentCommand.includes('AT+HTTPREAD=0,')){
@@ -166,12 +185,12 @@ const evaluate = (data, commands) => {
         }
 };
 
-post = (port, pos, url) => {
+post = (pos, url) => {
     
         pos = JSON.stringify(pos);
         bytes = pos.length;
 
-        write();
+        write(COMMANDS[0]);
 
         parser.on('data', data => evaluate(data, 'post'));
         parser.on('error', err => reject(err.data));
