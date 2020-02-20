@@ -157,11 +157,11 @@ const evaluate = data => {
 			}
             break;
             
-            if(currentCommand.includes('AT+HTTPREAD=0,')){
-                if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
-                    result = data;
-                }
-            }
+            // if(currentCommand.includes('AT+HTTPREAD=0,')){
+            //     if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
+            //         result = data;
+            //     }
+            // }
 	}
 };
 
