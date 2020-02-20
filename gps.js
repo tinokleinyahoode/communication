@@ -24,7 +24,6 @@ const gps_write = (port, cmd) => {
 };
 
 const getPosition = port => {
-	console.log(GPS_COMMANDS);
 	return new Promise((res, rej) => {
 		const parse = port.pipe(new Readline({}));
 		gps_write(port, GPS_COMMANDS[0]);
@@ -33,9 +32,7 @@ const getPosition = port => {
 			let response = evaluate_gps(port, data);
 			if (response == 'position') {
 				gps_startCount = 0;
-				GPS_COMMANDS = GPS_COMMANDS_RESET.slice();
 				res(coord);
-				return null;
 			}
 		});
 		parse.on('error', err => reject(err.data));
@@ -56,7 +53,7 @@ const evaluate_gps = (port, data) => {
 				if (GPS_COMMANDS.length != 0) {
 					currentCommand = GPS_COMMANDS.shift();
 					gps_write(port, currentCommand);
-				} 
+				}
 			}
 			break;
 		case '+CGNSINF:':
@@ -70,9 +67,14 @@ const evaluate_gps = (port, data) => {
 				};
 				return 'position';
 			} else {
-				setTimeout(() => {
-					gps_write(port, currentCommand);
-				}, 5000);
+				if(GPS_COMMANDS.length != 0){
+					setTimeout(() => {
+						gps_write(port, currentCommand);
+					}, 5000);
+				}else{
+					GPS_COMMANDS = GPS_COMMANDS_RESET.slice();
+					return null;
+				}
 			}
 			break;
 		case 'ERROR':
