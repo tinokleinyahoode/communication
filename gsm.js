@@ -27,7 +27,7 @@ let startCount = 0;
 let result, bytes, command, currentCommand;
 
 // const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
-const port = new SerialPort('/dev/ttyAMA0', { baudRate: 57600 });
+const port = new SerialPort('/dev/tty8', { baudRate: 57600 });
 const parser = port.pipe(new Readline({}), { autoOpen: true }); //{ delimiter: '\r\n' }
 
 start = () => {
