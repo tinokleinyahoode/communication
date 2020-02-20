@@ -26,7 +26,8 @@ let error_count = 0;
 let startCount = 0;
 let result, bytes, command, currentCommand;
 
-const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
+// const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
+const port = new SerialPort('/dev/ttyAMA0', { baudRate: 57600 });
 const parser = port.pipe(new Readline({}), { autoOpen: true }); //{ delimiter: '\r\n' }
 
 start = () => {
@@ -91,7 +92,7 @@ const evaluate = data => {
 	// error handling
 	USED_COMMANDS.push(currentCommand);
 
-	let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'OK'];
+	let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'OK', ];
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
 			if (command === 'start') {
@@ -118,14 +119,11 @@ const evaluate = data => {
 				}
 			} else if (command == 'post') {
 				if (currentCommand != 'AT+HTTPACTION=1' && currentCommand != 'AT+HTTPPARA="CONTENT","application/json"') {
-					if (com.length == 1) {
+					if (com.length != 0) {
+                        currentCommand = com.shift();
 						write(currentCommand);
 					} else {
-						if (errorCount == 0) {
-							resolve(result);
-						} else {
-							reject(errordata);
-						}
+						resolve(result);
 					}
 				} else if (currentCommand == 'AT+HTTPPARA="CONTENT","application/json"') {
 					write(bytes + ',2000');
@@ -157,19 +155,17 @@ const evaluate = data => {
 				} else if (command == 'stop') {
 				}
 			}
-			break;
-		// default:
-		// if(currentCommand.includes('AT+HTTPREAD=0,')){
-		//     console.log('read');
-		//     if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
-		//         result = data;
-		//     }
-		// }
-		// break;
+            break;
+            
+            if(currentCommand.includes('AT+HTTPREAD=0,')){
+                if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
+                    result = data;
+                }
+            }
 	}
 };
 
-post = (pos, url) => {
+post = (pos) => {
 	pos = JSON.stringify(pos);
 	bytes = pos.length;
 
