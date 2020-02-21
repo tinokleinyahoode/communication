@@ -5,7 +5,7 @@ const Readline = require('@serialport/parser-readline');
 
 // , 'AT+CGNSPWR=0'
 let GPS_COMMANDS = ['AT+CGNSPWR=1', 'AT+CGNSTST=1', 'AT+CGNSTST=0', 'AT+CGNSINF'];
-const GPS_COMMANDS_RESET = GPS_COMMANDS.slice();
+const GPS_COMMANDS_RESET = [...GPS_COMMANDS];
 
 let gps_error_count = 0;
 let gps_startCount = 0;
@@ -30,8 +30,9 @@ const getPosition = port => {
 
 		parse.on('data', data => {
 			let response = evaluate_gps(port, data);
-			if (response == 'position') {
+			if (response === 'position') {
 				gps_startCount = 0;
+				GPS_COMMANDS = [...GPS_COMMANDS_RESET];
 				res(JSON.stringify(coord));
 			}
 		});
@@ -42,7 +43,7 @@ const getPosition = port => {
 const evaluate_gps = (port, data) => {
 	console.log('> ', data);
 	if (gps_startCount == 0) {
-		currentCommand = GPS_COMMANDS.shift();
+		currentCommand = [...GPS_COMMANDS];
 		gps_startCount++;
 	}
 	let availableResponses = ['ERROR', '+CGNSINF:', 'OK'];
@@ -51,7 +52,7 @@ const evaluate_gps = (port, data) => {
 		case 'OK':
 			if (currentCommand != 'AT+CGNSINF') {
 				if (GPS_COMMANDS.length != 0) {
-					currentCommand = GPS_COMMANDS.shift();
+					currentCommand = [...GPS_COMMANDS];
 					gps_write(port, currentCommand);
 				}
 			}
@@ -60,9 +61,9 @@ const evaluate_gps = (port, data) => {
 			result = data.split(',');
 			if (result[3] != '') {
 				coord = {
-					position: [result[3], result[4]],
-					heading: result[7],
-					speed: result[6],
+					position: [parseFloat(result[3]), parseFloat(result[4])],
+					heading: parseFloat(result[7]),
+					speed: parseFloat(result[6]),
 					clear: true
 				};
 				return 'position';
