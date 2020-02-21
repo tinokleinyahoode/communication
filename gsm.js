@@ -26,8 +26,8 @@ let error_count = 0;
 let startCount = 0;
 let result, bytes, command, currentCommand;
 
-// const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
-const port = new SerialPort('/dev/tty8', { baudRate: 57600 });
+const port = new SerialPort('/dev/ttyS0', { baudRate: 57600 });
+// const port = new SerialPort('/dev/tty8', { baudRate: 57600 });
 const parser = port.pipe(new Readline({}), { autoOpen: true }); //{ delimiter: '\r\n' }
 
 start = () => {
@@ -43,8 +43,8 @@ start = () => {
 
 		parser.on('data', data => {
 			let response = evaluate(data);
-			if (response === 'started') resolve(port);
-		});
+            if (response === 'started') resolve(port);
+        });
 	});
 };
 
@@ -57,6 +57,24 @@ const stop = () => {
 			resolve(response);
 		});
 	});
+};
+
+const post = (pos) => {
+    return new Promise((resolve, reject) => {
+        pos = JSON.stringify(pos);
+
+        write(COMMANDS[0]);
+
+        parser.on('data', data => {
+            command = 'post';
+            let response = evaluate(data, pos);
+            if(response === 'serverResponse'){
+                resolve(result);
+            }
+            
+        });
+        parser.on('error', err => reject(err.data));
+    });
 };
 
 const includesAny = (string, arr) => {
@@ -72,12 +90,11 @@ const write = (cmd, params = '', option = '') => {
 	if (option == 'send') {
 		port.write(params + '\r\n');
 	} else {
-		params = '';
-		port.write(cmd + '\r\n');
+		port.write(cmd + params + '\r\n');
 	}
 };
 
-const evaluate = data => {
+const evaluate = (data, pos = '') => {
 	console.log('< ', data);
 	if (command === 'start') com = START_COMMANDS;
 	if (command === 'stop') com = STOP_COMMANDS;
@@ -87,12 +104,12 @@ const evaluate = data => {
 	if (startCount == 0) {
 		currentCommand = com.shift();
 		startCount++;
-	}
+    }
 
 	// error handling
 	USED_COMMANDS.push(currentCommand);
 
-	let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'OK', ];
+    let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'AT+HTTPREAD=0,', 'OK', ];
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
 			if (command === 'start') {
@@ -117,26 +134,34 @@ const evaluate = data => {
 						return 'stopped';
 					}
 				}
-			} else if (command == 'post') {
-				if (currentCommand != 'AT+HTTPACTION=1' && currentCommand != 'AT+HTTPPARA="CONTENT","application/json"') {
+			} else if (command === 'post') {
+				if (currentCommand != 'AT+HTTPACTION=1' && !currentCommand.includes('AT+HTTPREAD=0,')) { // && currentCommand != 'AT+HTTPPARA="CONTENT","application/json"'
 					if (com.length != 0) {
                         currentCommand = com.shift();
 						write(currentCommand);
-					} else {
-						resolve(result);
+					} else if(currentCommand === 'read'){
+						return 'serverResponse';
 					}
-				} else if (currentCommand == 'AT+HTTPPARA="CONTENT","application/json"') {
-					write(bytes + ',2000');
-				} else if (currentCommand.includes('AT+HTTPPARA="URL",')) {
-					write(currentCommand, url);
-				}
+				} else if (currentCommand === 'AT+HTTPDATA=') {
+                    bytes = pos.length;
+                    currentCommand = 'bytes';
+                    write(bytes + ',2000');
+                } else if(currentCommand === 'download' || currentCommand === 'bytes'){
+                    currentCommand = com.shift();
+                    write(currentCommand);	
+                }
+                // else if (currentCommand.includes('AT+HTTPPARA="URL",')) {
+				// 	write(currentCommand, url);
+				// }
 			}
 			break;
 		case 'DOWNLOAD':
+            currentCommand = 'download';
 			write(pos, 'send');
 			break;
 		case '+HTTPACTION:':
-			let param = data.split(',').pop();
+            let param = data.split(',').pop();
+            currentCommand = com.shift();
 			write(currentCommand, param);
 			break;
 		case 'ERROR':
@@ -156,23 +181,15 @@ const evaluate = data => {
 				}
 			}
             break;
-            
+        case 'AT+HTTPREAD=0,':
             // if(currentCommand.includes('AT+HTTPREAD=0,')){
-            //     if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
-            //         result = data;
-            //     }
+                if(!data.includes('+HTTPREAD:') && !data.includes('AT+HTTPREAD=0,')){
+                    currentCommand = 'read';
+                    result = data;
+                }
             // }
+            break;
 	}
-};
-
-post = (pos) => {
-	pos = JSON.stringify(pos);
-	bytes = pos.length;
-
-	write(COMMANDS[0]);
-
-	parser.on('data', data => evaluate(data, 'post'));
-	parser.on('error', err => reject(err.data));
 };
 
 module.exports = { start, stop, post };

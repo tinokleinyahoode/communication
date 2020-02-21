@@ -32,7 +32,7 @@ const getPosition = port => {
 			let response = evaluate_gps(port, data);
 			if (response == 'position') {
 				gps_startCount = 0;
-				res(coord);
+				res(JSON.stringify(coord));
 			}
 		});
 		parse.on('error', err => reject(err.data));
@@ -67,14 +67,10 @@ const evaluate_gps = (port, data) => {
 				};
 				return 'position';
 			} else {
-				if(GPS_COMMANDS.length != 0){
-					setTimeout(() => {
-						gps_write(port, currentCommand);
-					}, 5000);
-				}else{
-					GPS_COMMANDS = GPS_COMMANDS_RESET.slice();
-					return null;
-				}
+				setTimeout(() => {
+					gps_write(port, currentCommand);
+				}, 5000);
+				// GPS_COMMANDS = GPS_COMMANDS_RESET.slice();
 			}
 			break;
 		case 'ERROR':
