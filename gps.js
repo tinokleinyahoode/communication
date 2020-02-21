@@ -32,7 +32,6 @@ const getPosition = port => {
 			let response = evaluate_gps(port, data);
 			if (response === 'position') {
 				gps_startCount = 0;
-				GPS_COMMANDS = [...GPS_COMMANDS_RESET];
 				res(JSON.stringify(coord));
 			}
 		});
@@ -43,7 +42,7 @@ const getPosition = port => {
 const evaluate_gps = (port, data) => {
 	console.log('> ', data);
 	if (gps_startCount == 0) {
-		currentCommand = [...GPS_COMMANDS];
+		currentCommand = GPS_COMMANDS.shift();
 		gps_startCount++;
 	}
 	let availableResponses = ['ERROR', '+CGNSINF:', 'OK'];
@@ -52,7 +51,7 @@ const evaluate_gps = (port, data) => {
 		case 'OK':
 			if (currentCommand != 'AT+CGNSINF') {
 				if (GPS_COMMANDS.length != 0) {
-					currentCommand = [...GPS_COMMANDS];
+					currentCommand = GPS_COMMANDS.shift();
 					gps_write(port, currentCommand);
 				}
 			}
@@ -66,6 +65,7 @@ const evaluate_gps = (port, data) => {
 					speed: parseFloat(result[6]),
 					clear: true
 				};
+				GPS_COMMANDS = [...GPS_COMMANDS_RESET];
 				return 'position';
 			} else {
 				setTimeout(() => {
