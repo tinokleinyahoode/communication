@@ -21,6 +21,7 @@ const includesAny = (string, arr) => {
 
 const gps_write = (port, cmd) => {
 	port.write(cmd + '\r\n');
+	parse = port.pipe(new Readline({}));
 };
 
 const getPosition = port => {
@@ -29,6 +30,7 @@ const getPosition = port => {
 		gps_write(port, GPS_COMMANDS[0]);
 
 		parse.on('data', data => {
+			parse = null;
 			let response = evaluate_gps(port, data);
 			if (response === 'position') {
 				gps_startCount = 0;
