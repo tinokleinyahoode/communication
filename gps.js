@@ -19,42 +19,45 @@ const includesAny = (string, arr) => {
 	return match;
 };
 
-const gps_write = (port, cmd) => {
+const write = (port, cmd) => {
+	console.log('GPScmd >>', cmd);
 	port.write(cmd + '\r\n');
-	parse = port.pipe(new Readline({}));
 };
 
 const getPosition = port => {
-	return new Promise((res, rej) => {
-		const parse = port.pipe(new Readline({}));
-		gps_write(port, GPS_COMMANDS[0]);
+	return new Promise((resolve, reject) => {
+		const parser = port.pipe(new Readline({}));
+		write(port, GPS_COMMANDS[0]);
 
-		parse.on('data', data => {
-			parse = null;
-			let response = evaluate_gps(port, data);
+		const parsePosition = data => {
+			let response = evaluate(port, data);
 			if (response === 'position') {
+				resolve(JSON.stringify(coord));
 				gps_startCount = 0;
-				res(JSON.stringify(coord));
+				GPS_COMMANDS = [...GPS_COMMANDS_RESET];
+				parser.removeListener('data', parsePosition);
 			}
-		});
-		parse.on('error', err => reject(err.data));
+		};
+
+		parser.on('data', parsePosition);
+		parser.on('error', err => reject(err.data));
 	});
 };
 
-const evaluate_gps = (port, data) => {
-	console.log('> ', data);
+const evaluate = (port, data) => {
+	console.log('GPSparse << ', data);
 	if (gps_startCount == 0) {
 		currentCommand = GPS_COMMANDS.shift();
 		gps_startCount++;
 	}
-	let availableResponses = ['ERROR', '+CGNSINF:', 'OK'];
 
+	const availableResponses = ['ERROR', '+CGNSINF:', 'OK'];
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
 			if (currentCommand != 'AT+CGNSINF') {
 				if (GPS_COMMANDS.length != 0) {
 					currentCommand = GPS_COMMANDS.shift();
-					gps_write(port, currentCommand);
+					write(port, currentCommand);
 				}
 			}
 			break;
@@ -62,29 +65,28 @@ const evaluate_gps = (port, data) => {
 			result = data.split(',');
 			if (result[3] != '') {
 				coord = {
+					id:1,
 					position: [parseFloat(result[3]), parseFloat(result[4])],
 					heading: parseFloat(result[7]),
 					speed: parseFloat(result[6]),
 					clear: true
 				};
-				GPS_COMMANDS = [...GPS_COMMANDS_RESET];
 				return 'position';
 			} else {
 				setTimeout(() => {
-					gps_write(port, currentCommand);
+					write(port, currentCommand);
 				}, 5000);
-				// GPS_COMMANDS = GPS_COMMANDS_RESET.slice();
 			}
 			break;
 		case 'ERROR':
 			console.log('--- RESET ---');
-			// if (gps_error_count < 5) {
-			// 	gps_error_count++;
-			// 	gps_write(port, currentCommand);
-			// } else {
-			// 	GPS_COMMANDS = COMMANDSRESET;
-			// 	gps_write(port, GPS_COMMANDS[0]);
-			// }
+			if (gps_error_count < 5) {
+				gps_error_count++;
+				write(port, currentCommand);
+			} else {
+				GPS_COMMANDS = COMMANDSRESET;
+				write(port, GPS_COMMANDS[0]);
+			}
 			break;
 	}
 };
