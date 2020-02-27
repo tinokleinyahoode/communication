@@ -44,7 +44,7 @@ const getPosition = (port, parser) => {
 	});
 };
 
-const evaluate = (port, data) => {
+const evaluate = (port, data) => { 
 	console.log('GPSparse << ', data);
 	if (gps_startCount == 0) {
 		currentCommand = GPS_COMMANDS.shift();

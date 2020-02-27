@@ -3,7 +3,7 @@ const gpio = require('raspi-gpio');
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-let errorCount = 0;
+let errorCount = 0; 
 let startCount = 0;
 let result, bytes, command, currentCommand, response, url, queryString;
 
