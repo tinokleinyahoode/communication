@@ -4,7 +4,7 @@ const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
 let POST_COMMANDS = [
-	`AT+HTTPPARA="URL",`,
+	'AT+HTTPPARA="URL",',
 	// 'AT+HTTPPARA="CID",1',
 	// 'AT+HTTPPARA="CONTENT","application/json"',
 	// 'AT+HTTPDATA=',
@@ -24,7 +24,7 @@ let STOP_COMMANDS_RESET = [...STOP_COMMANDS];
 
 let errorCount = 0; 
 let startCount = 0;
-let result, bytes, command, currentCommand, response;
+let result, command, currentCommand, response; //bytes
 
 const port = new SerialPort('/dev/ttyS0', {
 	baudRate: 57600
@@ -99,6 +99,7 @@ const post = pos => {
 			command = 'post';
 			let response = evaluate(data, pos);
 			if (response === 'serverResponse') {
+				console.log("RESULT: ",result);
 				resolve(result);
 				reset();
 				parser.removeListener('data', parsePost);
@@ -194,7 +195,7 @@ const evaluate = (data, pos = '') => {
 						if (com.length != 0) {
 							currentCommand = com.shift();
 							write(currentCommand);
-						} else {
+						} else { 
 							return 'serverResponse';
 						}
 					}
