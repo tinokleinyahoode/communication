@@ -4,7 +4,7 @@
 const Readline = require('@serialport/parser-readline');
 
 // , 'AT+CGNSPWR=0'
-let GPS_COMMANDS = ['AT+CGNSPWR=1', 'AT+CGNSTST=1', 'AT+CGNSTST=0', 'AT+CGNSINF'];
+let GPS_COMMANDS = ['AT+CGNSINF']; //'AT+CGNSTST=1', 'AT+CGNSTST=0', 
 const GPS_COMMANDS_RESET = [...GPS_COMMANDS];
 
 let gps_error_count = 0;
@@ -39,8 +39,13 @@ const getPosition = (port, parser) => {
 			}
 		};
 
+		const errorPosition = () => {
+			reject(err.data);
+			parser.removeListener('data', errorPosition);
+		}
+
 		parser.on('data', parsePosition);
-		parser.on('error', err => reject(err.data));
+		parser.on('error', errorPosition );
 	});
 };
 

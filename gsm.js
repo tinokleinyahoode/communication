@@ -3,11 +3,7 @@ const gpio = require('raspi-gpio');
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-let errorCount = 0; 
-let startCount = 0;
-let result, bytes, command, currentCommand, response, url, queryString;
-
-let COMMANDS = [
+let POST_COMMANDS = [
 	`AT+HTTPPARA="URL",`,
 	'AT+HTTPPARA="CID",1',
 	'AT+HTTPPARA="CONTENT","application/json"',
@@ -16,15 +12,19 @@ let COMMANDS = [
 	'AT+HTTPREAD=0,'
 ];
 
-let START_COMMANDS = ['AT+CGNSPWR=0', 'AT+SAPBR=1,1', 'AT+SAPBR=2,1', 'AT+HTTPINIT'];
+let START_COMMANDS = ['AT+CGNSPWR=1', 'AT+SAPBR=1,1', 'AT+SAPBR=2,1', 'AT+HTTPINIT']; 
 let STOP_COMMANDS = ['AT+SAPBR=0,1', 'AT+HTTPTERM'];
 
 let STOP_COMMANDS_RESTART = [];
 let USED_COMMANDS = [];
 
-let COMMANDS_RESET = [...COMMANDS];
+let POST_COMMANDS_RESET = [...POST_COMMANDS];
 let START_COMMANDS_RESET = [...START_COMMANDS];
 let STOP_COMMANDS_RESET = [...STOP_COMMANDS];
+
+let errorCount = 0; 
+let startCount = 0;
+let result, bytes, command, currentCommand, response;
 
 const port = new SerialPort('/dev/ttyS0', {
 	baudRate: 57600
@@ -47,14 +47,19 @@ const start = () => {
 			response = evaluate(data);
 			if (response === 'started') {
 				console.log('[ MODEM STARTED SUCCESSFULLY ]');
-				resolve({ port: port, parser: parser });
+				resolve({ port, parser });
 				reset();
 				parser.removeListener('data', parseStart);
 			}
 		};
 
+		const errorStart = err => {
+			reject(err.data);
+			parser.removeListener('error', errorStart);
+		}
+
 		parser.on('data', parseStart);
-		parser.on('error', err => reject(err.data));
+		parser.on('error', errorStart );
 	});
 };
 
@@ -72,8 +77,13 @@ const stop = () => {
 			}
 		};
 
+		const errorStop = err => {
+			reject(err.data);
+			parser.removeListener('error', errorStop);
+		}
+
 		parser.on('data', parseStop);
-		parser.on('error', err => reject(err.data));
+		parser.on('error', errorStop );
 	});
 };
 
@@ -83,7 +93,7 @@ const post = pos => {
 		url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
 		queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}"`;
 
-		write(COMMANDS[0] + url + queryString);
+		write(POST_COMMANDS[0] + url + queryString);
 
 		const parsePost = data => {
 			command = 'post';
@@ -95,8 +105,13 @@ const post = pos => {
 			}
 		};
 
+		const errorPost = err => {
+			reject(err.data);
+			parser.removeListener('error', errorPost);
+		}
+
 		parser.on('data', parsePost);
-		parser.on('error', err => reject(err.data));
+		parser.on('error', errorPost );
 	});
 };
 
@@ -106,7 +121,7 @@ const reset = () => {
 
 	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
-	if (command === 'post') COMMANDS = [...COMMANDS_RESET];
+	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
 };
 
 const includesAny = (string, arr) => {
@@ -130,7 +145,7 @@ const evaluate = (data, pos = '') => {
 	console.log('GSM < ', data);
 	if (command === 'start') com = START_COMMANDS;
 	if (command === 'stop') com = STOP_COMMANDS;
-	if (command === 'post') com = COMMANDS;
+	if (command === 'post') com = POST_COMMANDS;
 	if (command === 'stop_restart') com = STOP_COMMANDS_RESTART;
 
 	if (startCount == 0) {
