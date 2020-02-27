@@ -5,9 +5,9 @@ const Readline = require('@serialport/parser-readline');
 
 let POST_COMMANDS = [
 	`AT+HTTPPARA="URL",`,
-	'AT+HTTPPARA="CID",1',
-	'AT+HTTPPARA="CONTENT","application/json"',
-	'AT+HTTPDATA=',
+	// 'AT+HTTPPARA="CID",1',
+	// 'AT+HTTPPARA="CONTENT","application/json"',
+	// 'AT+HTTPDATA=',
 	'AT+HTTPACTION=1',
 	'AT+HTTPREAD=0,'
 ];
@@ -155,7 +155,8 @@ const evaluate = (data, pos = '') => {
 
 	USED_COMMANDS.push(currentCommand);
 
-	let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'coordinates', 'OK', 'AT+HTTPPARA="URL"'];
+	// let availableResponses = ['ERROR', 'DOWNLOAD', '+HTTPACTION:', 'coordinates', 'OK', 'AT+HTTPPARA="URL"'];
+	let availableResponses = ['ERROR', '+HTTPACTION:', 'coordinates', 'OK'];
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
 			switch (command) {
@@ -184,11 +185,12 @@ const evaluate = (data, pos = '') => {
 					}
 					break;
 				case 'post':
-					if (currentCommand === 'AT+HTTPPARA="CONTENT","application/json"') {
-						bytes = pos.length;
-						currentCommand = com.shift();
-						write(currentCommand, bytes + ',2000');
-					} else if (currentCommand != 'AT+HTTPACTION=1') {
+					// if (currentCommand === 'AT+HTTPPARA="CONTENT","application/json"') {
+					// 	bytes = pos.length;
+					// 	currentCommand = com.shift();
+					// 	write(currentCommand, bytes + ',2000');
+					// } else 
+					if (currentCommand != 'AT+HTTPACTION=1') {
 						if (com.length != 0) {
 							currentCommand = com.shift();
 							write(currentCommand);
@@ -200,10 +202,10 @@ const evaluate = (data, pos = '') => {
 				default:
 			}
 			break;
-		case 'DOWNLOAD':
-			currentCommand = 'download';
-			write(pos, '', 'send');
-			break;
+		// case 'DOWNLOAD':
+		// 	currentCommand = 'download';
+		// 	write(pos, '', 'send');
+		// 	break;
 		case '+HTTPACTION:':
 			let param = data.split(',').pop();
 			currentCommand = com.shift();

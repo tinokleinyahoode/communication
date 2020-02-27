@@ -56,16 +56,16 @@ const evaluate = (port, data) => {
 		gps_startCount++;
 	}
 
-	const availableResponses = ['ERROR', '+CGNSINF:', 'OK'];
+	const availableResponses = ['ERROR', '+CGNSINF:']; //, 'OK'
 	switch (includesAny(data, availableResponses)) {
-		case 'OK':
-			if (currentCommand != 'AT+CGNSINF') {
-				if (GPS_COMMANDS.length != 0) {
-					currentCommand = GPS_COMMANDS.shift();
-					write(port, currentCommand);
-				}
-			}
-			break;
+		// case 'OK':
+		// 	if (currentCommand != 'AT+CGNSINF') {
+		// 		if (GPS_COMMANDS.length != 0) {
+		// 			currentCommand = GPS_COMMANDS.shift();
+		// 			write(port, currentCommand);
+		// 		}
+		// 	}
+		// 	break;
 		case '+CGNSINF:':
 			result = data.split(',');
 			if (result[3] != '') {

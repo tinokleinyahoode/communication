@@ -13,13 +13,14 @@ let intCount = 0;
 const heardbeat = (port, parser) => {
 	getPosition(port, parser).then((pos) => {
 		post(pos).then(response => {
+			console.log("RES: ", response);
 			setInterval(() => {
 				getPosition(port, parser).then((pos) => {
 					post(pos).then(response => {
 						console.log("RES: ", response);
 					}).catch(error => console.log('post: ',error));
 				}).catch(error => console.log('Position: ',error));
-			}, 10000);	
+			}, 5000);	
 		})
 	});
 }
