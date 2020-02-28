@@ -64,19 +64,16 @@ const start = () => {
 
 const stop = () => {
 	return new Promise((resolve, reject) => {
-		write(STOP_COMMANDS[0]);
 		command = 'stop';
-
+		write(STOP_COMMANDS[0]);
+		
 		const parseStop = data => {
 			let response = evaluate(data);
 			if (response === true) {
 				resolve(response);
 				reset();
 				parser.removeListener('data', parseStop);
-			} else {
-				reset();
-				write(STOP_COMMANDS[0]);
-			}
+			} 
 		};
 
 		const errorStop = err => {
@@ -119,8 +116,9 @@ const post = pos => {
 const reset = () => {
 	startCount = 0;
 	errorCount = 0;
-	if (command != 'stop') USED_COMMANDS = [];
-
+	
+	USED_COMMANDS = [];
+	
 	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
@@ -177,14 +175,7 @@ const evaluate = (data, pos = '') => {
 						currentCommand = com.shift();
 						write(currentCommand);
 					} else {
-						// if 
-						// (command === 'stop_restart') {
-						// 	command = 'start';
-						// 	reset();
-						// 	write(START_COMMANDS[0]);
-						// } else {
-							return true;
-						// }
+						return true;
 					}
 					break;
 				case 'stop_restart':
