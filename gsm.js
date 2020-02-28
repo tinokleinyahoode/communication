@@ -74,6 +74,9 @@ const stop = () => {
 				resolve(response);
 				reset();
 				parser.removeListener('data', parseStop);
+			}else{
+				reset();
+				write(STOP_COMMANDS[0]);	
 			}
 		};
 
