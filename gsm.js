@@ -12,7 +12,7 @@ let POST_COMMANDS = [
 	'AT+HTTPREAD=0,'
 ];
 
-let START_COMMANDS = ['AT+CGNSPWR=1', 'AT+SAPBR=1,1', 'AT+SAPBR=2,1', 'AT+HTTPINIT']; 
+let START_COMMANDS = ['AT+CGNSPWR=1', 'AT+SAPBR=1,1', 'AT+SAPBR=2,1', 'AT+HTTPINIT'];
 let STOP_COMMANDS = ['AT+SAPBR=0,1', 'AT+HTTPTERM'];
 
 let STOP_COMMANDS_RESTART = [];
@@ -22,7 +22,7 @@ let POST_COMMANDS_RESET = [...POST_COMMANDS];
 let START_COMMANDS_RESET = [...START_COMMANDS];
 let STOP_COMMANDS_RESET = [...STOP_COMMANDS];
 
-let errorCount = 0; 
+let errorCount = 0;
 let startCount = 0;
 let result, command, currentCommand, response; //bytes
 
@@ -56,10 +56,9 @@ const start = () => {
 		const errorStart = err => {
 			reject(err.data);
 			parser.removeListener('error', errorStart);
-		}
+		};
 
-		parser.on('data', parseStart);
-		parser.on('error', errorStart );
+		parser.on('data', parseStart).on('error', errorStart);
 	});
 };
 
@@ -74,19 +73,18 @@ const stop = () => {
 				resolve(response);
 				reset();
 				parser.removeListener('data', parseStop);
-			}else{
+			} else {
 				reset();
-				write(STOP_COMMANDS[0]);	
+				write(STOP_COMMANDS[0]);
 			}
 		};
 
 		const errorStop = err => {
 			reject(err.data);
 			parser.removeListener('error', errorStop);
-		}
+		};
 
-		parser.on('data', parseStop);
-		parser.on('error', errorStop );
+		parser.on('data', parseStop).on('error', errorStop);
 	});
 };
 
@@ -102,7 +100,7 @@ const post = pos => {
 			command = 'post';
 			let response = evaluate(data, pos);
 			if (response === 'serverResponse') {
-				console.log("RESULT: ",result);
+				console.log('RESULT: ', result);
 				resolve(result);
 				reset();
 				parser.removeListener('data', parsePost);
@@ -112,23 +110,20 @@ const post = pos => {
 		const errorPost = err => {
 			reject(err.data);
 			parser.removeListener('error', errorPost);
-		}
+		};
 
-		parser.on('data', parsePost);
-		parser.on('error', errorPost );
+		parser.on('data', parsePost).on('error', errorPost);
 	});
 };
 
 const reset = () => {
 	startCount = 0;
 	errorCount = 0;
-	if(command != 'stop') USED_COMMANDS = [];
+	if (command != 'stop') USED_COMMANDS = [];
 
 	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
-
-
 };
 
 const includesAny = (string, arr) => {
@@ -196,12 +191,12 @@ const evaluate = (data, pos = '') => {
 					// 	bytes = pos.length;
 					// 	currentCommand = com.shift();
 					// 	write(currentCommand, bytes + ',2000');
-					// } else 
+					// } else
 					if (currentCommand != 'AT+HTTPACTION=1') {
 						if (com.length != 0) {
 							currentCommand = com.shift();
 							write(currentCommand);
-						} else { 
+						} else {
 							return 'serverResponse';
 						}
 					}
@@ -219,7 +214,7 @@ const evaluate = (data, pos = '') => {
 			write(currentCommand, param);
 			break;
 		case 'coordinates':
-			result = data
+			result = data;
 			break;
 		case 'ERROR':
 			if (errorCount <= 5) {
@@ -234,8 +229,9 @@ const evaluate = (data, pos = '') => {
 					if (includesAny('AT+SAPBR=1,1', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+SAPBR=0,1');
 					if (includesAny('AT+HTTPINIT', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+HTTPTERM');
 					write(STOP_COMMANDS_RESTART[0]);
-				} else if (command === 'stop_restart') {
+				} else if (command === 'stop' || command === 'stop_restart') {
 					reset();
+					command = 'start';
 					write(START_COMMANDS[0]);
 				}
 			}
