@@ -64,6 +64,7 @@ const start = () => {
 
 const stop = () => {
 	return new Promise((resolve, reject) => {
+		reset();
 		command = 'stop';
 		write(STOP_COMMANDS[0]);
 		
@@ -119,7 +120,6 @@ const reset = () => {
 	
 	USED_COMMANDS = [];
 
-	
 	START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
