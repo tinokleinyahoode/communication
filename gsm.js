@@ -66,9 +66,9 @@ const start = () => {
 const stop = () => {
 	return new Promise((resolve, reject) => {
 		write(STOP_COMMANDS[0]);
+		command = 'stop';
 
 		const parseStop = data => {
-			command = 'stop';
 			let response = evaluate(data);
 			if (response === true) {
 				resolve(response);
