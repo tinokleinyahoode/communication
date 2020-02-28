@@ -118,8 +118,9 @@ const reset = () => {
 	errorCount = 0;
 	
 	USED_COMMANDS = [];
+
 	
-	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
+	START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
 };
