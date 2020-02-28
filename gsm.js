@@ -187,6 +187,16 @@ const evaluate = (data, pos = '') => {
 						// }
 					}
 					break;
+				case 'stop_restart':
+					if (com.length != 0) {
+						currentCommand = com.shift();
+						write(currentCommand);
+					} else {
+						command = 'start';
+						reset();
+						write(START_COMMANDS[0]);
+					}
+					break;
 				case 'post':
 					// if (currentCommand === 'AT+HTTPPARA="CONTENT","application/json"') {
 					// 	bytes = pos.length;
