@@ -70,7 +70,7 @@ const stop = () => {
 		const parseStop = data => {
 			command = 'stop';
 			let response = evaluate(data);
-			if (response === 'stopped') {
+			if (response === true) {
 				resolve(response);
 				reset();
 				parser.removeListener('data', parseStop);
@@ -117,12 +117,14 @@ const post = pos => {
 };
 
 const reset = () => {
-	USED_COMMANDS = [];
 	startCount = 0;
+	if(command != 'stop') USED_COMMANDS = [];
 
 	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
 	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
+
+
 };
 
 const includesAny = (string, arr) => {
@@ -181,7 +183,7 @@ const evaluate = (data, pos = '') => {
 							reset();
 							write(START_COMMANDS[0]);
 						} else {
-							return 'stopped';
+							return true;
 						}
 					}
 					break;
@@ -237,4 +239,4 @@ const evaluate = (data, pos = '') => {
 	}
 };
 
-module.exports = { start, stop, post };
+module.exports = { start, stop, post, reset };
