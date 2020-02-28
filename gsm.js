@@ -172,18 +172,19 @@ const evaluate = (data, pos = '') => {
 					}
 					break;
 				case 'stop':
-				case 'stop_restart':
+				// case 'stop_restart':
 					if (com.length != 0) {
 						currentCommand = com.shift();
 						write(currentCommand);
 					} else {
-						if (command === 'stop_restart') {
-							command = 'start';
-							reset();
-							write(START_COMMANDS[0]);
-						} else {
+						// if 
+						// (command === 'stop_restart') {
+						// 	command = 'start';
+						// 	reset();
+						// 	write(START_COMMANDS[0]);
+						// } else {
 							return true;
-						}
+						// }
 					}
 					break;
 				case 'post':
