@@ -121,6 +121,7 @@ const post = pos => {
 
 const reset = () => {
 	startCount = 0;
+	errorCount = 0;
 	if(command != 'stop') USED_COMMANDS = [];
 
 	if (command === 'start') START_COMMANDS = [...START_COMMANDS_RESET];
