@@ -64,7 +64,8 @@ const start = () => {
 
 const stop = () => {
 	return new Promise((resolve, reject) => {
-		reset();
+
+		// reset();
 		command = 'stop';
 		write(STOP_COMMANDS[0]);
 		
@@ -121,8 +122,8 @@ const reset = () => {
 	USED_COMMANDS = [];
 
 	START_COMMANDS = [...START_COMMANDS_RESET];
-	if (command === 'stop') STOP_COMMANDS = [...STOP_COMMANDS_RESET];
-	if (command === 'post') POST_COMMANDS = [...POST_COMMANDS_RESET];
+	STOP_COMMANDS = [...STOP_COMMANDS_RESET];
+	POST_COMMANDS = [...POST_COMMANDS_RESET];
 };
 
 const includesAny = (string, arr) => {
@@ -232,11 +233,20 @@ const evaluate = (data, pos = '') => {
 					if (includesAny('AT+SAPBR=1,1', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+SAPBR=0,1');
 					if (includesAny('AT+HTTPINIT', USED_COMMANDS)) STOP_COMMANDS_RESTART.push('AT+HTTPTERM');
 					write(STOP_COMMANDS_RESTART[0]);
-				} else if (command === 'stop' || command === 'stop_restart') {
+				} else if (command === 'stop_restart') {
 					reset();
 					command = 'start';
 					write(START_COMMANDS[0]);
+				}else if(command === 'stop'){
+					reset();
+					currentCommand = 'start';
+					write(START_COMMANDS[0]);
 				}
+				// else if(command === 'post'){
+				// 	reset();
+				// 	currentCommand = 'post';
+				// 	write(POST_COMMANDS[0]);
+				// }
 			}
 			break;
 	}

@@ -44,8 +44,7 @@ const getPosition = (port, parser) => {
 			parser.removeListener('data', errorPosition);
 		}
 
-		parser.on('data', parsePosition);
-		parser.on('error', errorPosition );
+		parser.on('data', parsePosition).on('error', errorPosition );
 	});
 };
 
@@ -75,11 +74,14 @@ const evaluate = (port, data) => {
 					speed: parseFloat(result[6]),
 					clear: true
 				};
+				gps_startCount++;
 				return 'position';
 			} else {
-				setTimeout(() => {
-					write(port, currentCommand);
-				}, 5000);
+				if(gps_startCount === 1){
+					setTimeout(() => {
+						write(port, currentCommand);
+					}, 5000);
+				}
 			}
 			break;
 		case 'ERROR':
