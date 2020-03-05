@@ -128,8 +128,9 @@ const reset = () => {
 };
 
 const resetListener = () => {
-	parser.removeListener('data', parsePost);
-	parser.removeListener('data', parsePosition);
+	// parser.removeListener('data', parsePost);
+	// parser.removeListener('data', parsePosition);
+	parser.removeAllListeners();
 }
 
 const includesAny = (string, arr) => {
