@@ -241,12 +241,13 @@ const evaluate = (data, pos = '') => {
 					reset();
 					currentCommand = 'start';
 					write(START_COMMANDS[0]);
+				}else if(command === 'post'){
+					reset();
+					parser.removeListener('data', parseStart);
+					parser.removeListener('data', parseStop);
+					parser.removeListener('data', parsePost);
+					parser.removeListener('data', parsePosition);
 				}
-				// else if(command === 'post'){
-				// 	reset();
-				// 	currentCommand = 'post';
-				// 	write(POST_COMMANDS[0]);
-				// }
 			}
 			break;
 	}
