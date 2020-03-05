@@ -25,6 +25,7 @@ let STOP_COMMANDS_RESET = [...STOP_COMMANDS];
 let errorCount = 0;
 let startCount = 0;
 let result, command, currentCommand, response; //bytes
+let parsePost, parsePosition;
 
 const port = new SerialPort('/dev/ttyS0', {
 	baudRate: 57600
@@ -95,7 +96,7 @@ const post = pos => {
 
 		write(POST_COMMANDS[0] + url + queryString);
 
-		const parsePost = data => {
+		parsePost = data => {
 			command = 'post';
 			let response = evaluate(data, pos);
 			if (response === 'serverResponse') {
@@ -126,7 +127,7 @@ const reset = () => {
 	POST_COMMANDS = [...POST_COMMANDS_RESET];
 };
 
-const resetListener = () =>{
+const resetListener = () => {
 	parser.removeListener('data', parsePost);
 	parser.removeListener('data', parsePosition);
 }
