@@ -25,6 +25,7 @@ const write = (port, cmd) => {
 };
 
 const getPosition = (port, parser) => {
+	GPS_COMMANDS = [...GPS_COMMANDS_RESET];
 	return new Promise((resolve, reject) => {
 		
 		write(port, GPS_COMMANDS[0]);
