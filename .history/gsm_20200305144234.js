@@ -126,13 +126,6 @@ const reset = () => {
 	POST_COMMANDS = [...POST_COMMANDS_RESET];
 };
 
-const resetListener = () =>{
-	parser.removeListener('data', parseStart);
-	parser.removeListener('data', parseStop);
-	parser.removeListener('data', parsePost);
-	parser.removeListener('data', parsePosition);
-}
-
 const includesAny = (string, arr) => {
 	let match;
 	arr.map(i => {
@@ -248,12 +241,15 @@ const evaluate = (data, pos = '') => {
 					reset();
 					currentCommand = 'start';
 					write(START_COMMANDS[0]);
-				}else if(command === 'post'){
-					reset();
 				}
+				// else if(command === 'post'){
+				// 	reset();
+				// 	currentCommand = 'post';
+				// 	write(POST_COMMANDS[0]);
+				// }
 			}
 			break;
 	}
 };
 
-module.exports = { start, stop, post, reset, resetListener };
+module.exports = { start, stop, post, reset };

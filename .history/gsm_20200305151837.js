@@ -256,4 +256,4 @@ const evaluate = (data, pos = '') => {
 	}
 };
 
-module.exports = { start, stop, post, reset, resetListener };
+module.exports = { start, stop, post, reset };
