@@ -127,8 +127,6 @@ const reset = () => {
 };
 
 const resetListener = () =>{
-	parser.removeListener('data', parseStart);
-	parser.removeListener('data', parseStop);
 	parser.removeListener('data', parsePost);
 	parser.removeListener('data', parsePosition);
 }
