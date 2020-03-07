@@ -33,35 +33,35 @@ const port = new SerialPort('/dev/ttyS0', {
 
 const parser = port.pipe(new Readline());
 
-const start = () => {
-	return new Promise((resolve, reject) => {
-		const output = new gpio.DigitalOutput('P1-31');
-		output.write(gpio.HIGH);
+// const start = () => {
+// 	return new Promise((resolve, reject) => {
+// 		const output = new gpio.DigitalOutput('P1-31');
+// 		output.write(gpio.HIGH);
 
-		setTimeout(() => {
-			output.write(gpio.LOW);
-			command = 'start';
-			write(START_COMMANDS[0]);
-		}, 1000);
+// 		initTimeout = setTimeout(() => {
+// 			output.write(gpio.LOW);
+// 			command = 'start';
+// 			write(START_COMMANDS[0]);
+// 			clearTimeout(initTimeout);
+// 		}, 1000);
 
-		const parseStart = data => {
-			response = evaluate(data);
-			if (response === 'started') {
-				console.log('[ MODEM STARTED SUCCESSFULLY ]');
-				resolve({ port, parser });
-				reset();
-				parser.removeListener('data', parseStart);
-			}
-		};
+// 		const parseStart = data => {
+// 			response = evaluate(data);
+// 			if (response === 'started') {
+// 				resolve({ port, parser });
+// 				reset();
+// 				parser.removeListener('data', parseStart);
+// 			}
+// 		};
 
-		const errorStart = err => {
-			reject(err.data);
-			parser.removeListener('error', errorStart);
-		};
+// 		const errorStart = err => {
+// 			reject(err.data);
+// 			parser.removeListener('error', errorStart);
+// 		};
 
-		parser.on('data', parseStart).on('error', errorStart);
-	});
-};
+// 		parser.on('data', parseStart).on('error', errorStart);
+// 	});
+// };
 
 const stop = () => {
 	return new Promise((resolve, reject) => {
@@ -100,7 +100,6 @@ const post = pos => {
 			command = 'post';
 			let response = evaluate(data, pos);
 			if (response === 'serverResponse') {
-				console.log('RESULT: ', result);
 				resolve(result);
 				reset();
 				parser.removeListener('data', parsePost);
@@ -128,8 +127,6 @@ const reset = () => {
 };
 
 const resetListener = () => {
-	// parser.removeListener('data', parsePost);
-	// parser.removeListener('data', parsePosition);
 	parser.removeAllListeners();
 }
 
@@ -147,11 +144,12 @@ const write = (cmd, params = '', option = '') => {
 		port.write(cmd + '\r\n');
 	} else {
 		port.write(cmd + params + '\r\n');
+		params = '';
 	}
 };
 
-const evaluate = (data, pos = '') => {
-	console.log('GSM < ', data);
+const evaluate = (data) => { //, pos = ''
+ 	console.log('GSM < ', data);
 	if (command === 'start') com = START_COMMANDS;
 	if (command === 'stop') com = STOP_COMMANDS;
 	if (command === 'post') com = POST_COMMANDS;

@@ -1,10 +1,12 @@
-const { start, stop, post, reset } = require('./gsm');
+const start = require('./start');
+const stop = require('./stop');
+const post = require('./post');
 const getPosition = require('./gps');
 
 const NAVIGATION_RATE = 1000;
 const HEARTBEAT_RATE = 5000 ;
 const WAIT_FOR_GPS_ACCURACY = 5000;
-const MAXIMUM_SERVER_RESPONSE_TIME = 20000;
+const MAXIMUM_SERVER_RESPONSE_TIME = 15000;
 
 let port = null;
 let parser = null;
@@ -99,11 +101,13 @@ let restartHeartbeat = () => {
         .then(res => {
             clearInterval(resetTimeout);
             intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
-            post(JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
+            post(port, parser, JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
             .then(res => setParams(JSON.parse(res)))
                 .then(res => {
-                    clearTimeout(resetTimeout);
-                    intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
+                    if(res !== false){
+                        clearTimeout(resetTimeout);
+                        intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
+                    }
                 });
             });
         
@@ -115,13 +119,14 @@ let restartHeartbeat = () => {
  */
 let heartbeat = () => {
     clearInterval(intervals.heartbeat);
+    heartbeatTimeout = setTimeout(restartHeartbeat, MAXIMUM_SERVER_RESPONSE_TIME);
 
     getPosition(port, parser)
         .then(res => {
             setParams(JSON.parse(res));
-            heartbeatTimeout = setTimeout(restartHeartbeat, MAXIMUM_SERVER_RESPONSE_TIME);
+            
 
-            post(JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
+            post(port, parser, JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
                 .then(res => setParams(JSON.parse(res)))
                 .then(res => {
 
