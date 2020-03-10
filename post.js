@@ -27,10 +27,10 @@ const post = (port, parser, pos) => {
 			parsePost = data => {
 				let response = evaluatePost(port, data);
 				if (response === true) {
-					resolve(result);
 					startCount = 0;
 					POST_COMMANDS = [...POST_COMMANDS_RESET];
 					parser.removeListener('data', parsePost);
+					resolve(result);
 				} else if(response === false) {
 					parser.removeListener('data', parsePost);
 				}
@@ -94,14 +94,9 @@ const evaluatePost = (port, data) => {
 			result = data;
 			break;
 		case 'ERROR':
-			if (errorCount <= 5) {
-				write(port, currentCommand);
-				errorCount++;
-			} else {
-				return false;
-			}
+			POST_COMMANDS = [...POST_COMMANDS_RESET];
 			break;
 	}
 };
 
-module.exports = post;
+module.exports = post, POST_COMMANDS, POST_COMMANDS_RESET;
