@@ -94,8 +94,8 @@ const evaluatePost = (port, data) => {
 			result = data;
 			break;
 		case 'ERROR':
+			startCount = 0;
 			POST_COMMANDS = [...POST_COMMANDS_RESET];
-			console.log("POST: ",POST_COMMANDS);
 			break;
 	}
 };
