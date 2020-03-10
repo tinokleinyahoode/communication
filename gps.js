@@ -48,7 +48,9 @@ const evaluate = (port, data) => {
 	const availableResponses = ['ERROR', '+CGNSINF:', 'OK']; 
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
-			return true;
+			if(coord){
+				return true;
+			}
 			break;
 		case '+CGNSINF:':
 			result = data.split(',');
