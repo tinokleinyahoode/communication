@@ -45,8 +45,11 @@ const write = (port, cmd) => {
 const evaluate = (port, data) => { 
 	console.log('GPSparse << ', data);
 	
-	const availableResponses = ['ERROR', '+CGNSINF:']; 
+	const availableResponses = ['ERROR', '+CGNSINF:', 'OK']; 
 	switch (includesAny(data, availableResponses)) {
+		case 'OK':
+			return true;
+			break;
 		case '+CGNSINF:':
 			result = data.split(',');
 			if (result[3] != '') {
@@ -56,7 +59,6 @@ const evaluate = (port, data) => {
 					speed: parseFloat(result[6]),
 					clear: true
 				};
-				return true;
 			} else {
 				setTimeout(() => {
 					write(port,GPS_COMMAND);
