@@ -96,6 +96,7 @@ const evaluatePost = (port, data) => {
 				write(port, currentCommand);
 				errorCount++;
 			} else {
+				POST_COMMANDS = [...POST_COMMANDS_RESET];
 				return false;
 			}
 			break;
