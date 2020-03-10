@@ -1,12 +1,10 @@
 let errorCount = 0;
 let startCount = 0;
 let result;
+const MAXIMUM_SERVER_RESPONSE_TIME = 5000;
 
 let POST_COMMANDS = [
 	'AT+HTTPPARA="URL",',
-	// 'AT+HTTPPARA="CID",1',
-	// 'AT+HTTPPARA="CONTENT","application/json"',
-	// 'AT+HTTPDATA=',
 	'AT+HTTPACTION=1',
 	'AT+HTTPREAD=0,'
 ];
@@ -16,6 +14,7 @@ POST_COMMANDS_RESET = [...POST_COMMANDS];
 const post = (port, parser, pos) => {
 		return new Promise((resolve, reject) => {
 			const { position, heading, speed, clear } = JSON.parse(pos);
+			postInterval = setInterval(post, MAXIMUM_SERVER_RESPONSE_TIME);
 
 			url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
 			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}"`;
@@ -27,6 +26,7 @@ const post = (port, parser, pos) => {
 				if (response === true) {
 					resolve(result);
 					startCount = 0;
+					clearInterval(postInterval);
 					POST_COMMANDS = [...POST_COMMANDS_RESET];
 					parser.removeListener('data', parsePost);
 				} else if(response === false) {

@@ -1,12 +1,15 @@
-const start = require('./start');
-const stop = require('./stop');
-const post = require('./post');
-const getPosition = require('./gps');
+const { navigationHandler } = require("boat-simulation/dist/navigationHandler");
+const { BoatControl } = require('motorControl');
+const start = require('communication/start');
+const stop = require('communication/stop');
+const post = require('communication/post');
+const getPosition = require('communication/gps');
+const getDetectedWaste = require('obstacle-detector');
 
 const NAVIGATION_RATE = 1000;
-const HEARTBEAT_RATE = 5000 ;
+const HEARTBEAT_RATE = 5000;
 const WAIT_FOR_GPS_ACCURACY = 5000;
-const MAXIMUM_SERVER_RESPONSE_TIME = 15000;
+const MAXIMUM_SERVER_RESPONSE_TIME = 10000;
 
 let port = null;
 let parser = null;
@@ -21,7 +24,7 @@ let status = {
     coordinates: [],
     startPoint: null,
     wayPoints: [],
-    // control: BoatControl,
+    control: BoatControl,
     trash: [],
     command: "STOP",
     position: [],
@@ -40,9 +43,7 @@ let setParams = ({ coordinates, wayPoints, command, position, speed, heading }) 
 
     if (valid(position)) status.position = position;
 
-    if (valid(position)) {
-        if (status.startPoint === null) status.startPoint = position
-    }
+    if (valid(position)) if (status.startPoint === null) status.startPoint = position;
 
     if (typeof speed === "number") status.speed = speed;
 
@@ -51,29 +52,36 @@ let setParams = ({ coordinates, wayPoints, command, position, speed, heading }) 
     if (typeof command === "string") status.command = command;
 };
 
-
-/**
- *
- * @param validKeys
- * @param object
- * @returns {{}}
- */
-let only = (validKeys, object) => {
-    let newObject = {};
-
-    Object.keys(object).forEach(key => {
-        if (validKeys.includes(key)) newObject[key] = object[key]
-    });
-
-    return newObject;
-};
-
 /**
  * @desc    Gets the Waste Detection Object and calls the navigationHandler
  *          if status has a valid position and coordinates.
  */
 let navigation = () => {
-    console.log('NAVIGATING');
+    // status.trash = await getDetectedWaste('192.168.1.2:3000').catch(err => console.log(err));
+
+    if (valid(status.position) && valid(status.coordinates)) {
+        let tempStatus = JSON.parse(JSON.stringify(status));
+
+        tempStatus.coordinates = tempStatus.coordinates.map(([lat, lng]) => ({
+            longitude: lng,
+            latitude: lat
+        }));
+
+        if (tempStatus.command === 'RANDOM') tempStatus.enableRandom = true;
+
+        tempStatus.position = {
+            getHeading: () => tempStatus.heading,
+            getPosition: () => {
+                return { latitude: 52.503591, longitude: 13.409392 };
+            },
+        };
+
+        tempStatus.control = BoatControl;
+
+        console.log("navigating");
+
+        navigationHandler(getKeys(["control", "position", "command", "coordinates", "enableRandom"], tempStatus));
+    }
 };
 
 /**
@@ -82,35 +90,17 @@ let navigation = () => {
  */
 let restartHeartbeat = () => {
     console.log('[ RESTARTING MODULE ]');
+
     resetTimeout = setTimeout(restartHeartbeat, MAXIMUM_SERVER_RESPONSE_TIME);
+    parser.removeListener('data', parsePost);
 
-    // clearTimeout(heartbeatTimeout);
     clearInterval(intervals.navigation);
+    clearTimeout(heartbeatTimeout);
     clearInterval(intervals.heartbeat);
+    
     intervals.navigation = null;
-
-    // stop()
-    //     .then(res => {
-    //         if (res) start().then(res => {
-    //             console.log('[ RESTARTING HEARTBEAT ]');
-    //             clearTimeout(resetTimeout);
-    //             heartbeat();
-    //         })
-    //     })
-    getPosition(port, parser)
-        .then(res => {
-            clearInterval(resetTimeout);
-            intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
-            post(port, parser, JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
-            .then(res => setParams(JSON.parse(res)))
-                .then(res => {
-                    if(res !== false){
-                        clearTimeout(resetTimeout);
-                        intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
-                    }
-                });
-            });
-        
+    
+    heartbeat();
 };
 
 /**
@@ -118,14 +108,13 @@ let restartHeartbeat = () => {
  *          returns an available command, wayPoints and the coordinates.
  */
 let heartbeat = () => {
+    console.log('>>>>>>>>>>>>>>> HEARTBEAT <<<<<<<<<<<<<<<');
     clearInterval(intervals.heartbeat);
     heartbeatTimeout = setTimeout(restartHeartbeat, MAXIMUM_SERVER_RESPONSE_TIME);
 
     getPosition(port, parser)
         .then(res => {
             setParams(JSON.parse(res));
-            
-
             post(port, parser, JSON.stringify({ clear: true, ...getKeys(["position", "heading", "speed"], status) }))
                 .then(res => setParams(JSON.parse(res)))
                 .then(res => {
@@ -138,11 +127,20 @@ let heartbeat = () => {
 
                     clearTimeout(heartbeatTimeout);
                     intervals.heartbeat = setInterval(heartbeat, HEARTBEAT_RATE);
-                    console.log(status);
+
+                    console.log('>>>>>>>>>>>>>>> HEARTBEAT END <<<<<<<<<<<<<<<');
+                    // resetListener();
+                    // console.log(status);
                 })
-                .catch(err => console.log('POST ERROR: ', err));
+                .catch(err => {
+                    console.log('POST ERROR: ', err);
+                    restartHeartbeat();
+                });
         })
-        .catch(err => console.log('GPS ERROR: ', err));
+        .catch(err => {
+            console.log('GPS ERROR: ', err);
+            restartHeartbeat();
+        });
 };
 
 /**
