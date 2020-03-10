@@ -15,7 +15,6 @@ const post = (port, parser, pos) => {
 		return new Promise((resolve, reject) => {
 			const { position, heading, speed, clear } = JSON.parse(pos);
 			POST_COMMANDS = [...POST_COMMANDS_RESET];
-			postInterval = setInterval(post(this.port, this.parser, this.pos), MAXIMUM_SERVER_RESPONSE_TIME);
 
 			url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
 			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}"`;
@@ -27,7 +26,6 @@ const post = (port, parser, pos) => {
 				if (response === true) {
 					resolve(result);
 					startCount = 0;
-					clearInterval(postInterval);
 					POST_COMMANDS = [...POST_COMMANDS_RESET];
 					parser.removeListener('data', parsePost);
 				} else if(response === false) {
