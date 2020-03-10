@@ -1,6 +1,5 @@
 let errorCount = 0;
 let startCount = 0;
-let port;
 
 let STOP_COMMANDS = ['AT+SAPBR=0,1', 'AT+HTTPTERM'];
 let STOP_COMMANDS_RESET = [...STOP_COMMANDS];
@@ -12,13 +11,15 @@ const stop = (port, parser) => {
 		write(port, STOP_COMMANDS[0]);
 		
 		const parseStop = data => {
-			let response = evaluateStop(data);
+			let response = evaluateStop(port, data);
 			if (response === true) {
                 resolve(response);
                 startCount = 0;
                 STOP_COMMANDS = [...STOP_COMMANDS_RESET];
 				parser.removeListener('data', parseStop);
-			} 
+			}else if(response === false){
+                reject(false);
+            }
 		};
 
 		const errorStop = err => {
@@ -43,7 +44,7 @@ const write = (port, cmd) => {
 	port.write(cmd + '\r\n');
 };
 
-const evaluateStop = (data) => {
+const evaluateStop = (port, data) => {
     console.log('STOP << ', data);
 
     if (startCount == 0) {
@@ -66,7 +67,6 @@ const evaluateStop = (data) => {
                 write(port, currentCommand);
                 errorCount++;
             }else{ 
-                reject(false);
                 errorCount = 0;
                 return false;
             }    

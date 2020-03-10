@@ -1,8 +1,6 @@
 let errorCount = 0;
 let startCount = 0;
 let result;
-let port = null;
-let parser = null;
 
 let POST_COMMANDS = [
 	'AT+HTTPPARA="URL",',
