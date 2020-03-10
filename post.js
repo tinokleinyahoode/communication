@@ -1,10 +1,14 @@
 let errorCount = 0;
 let startCount = 0;
 let result;
-const MAXIMUM_SERVER_RESPONSE_TIME = 5000;
+let port = null;
+let parser = null;
 
 let POST_COMMANDS = [
 	'AT+HTTPPARA="URL",',
+	// 'AT+HTTPPARA="CID",1',
+	// 'AT+HTTPPARA="CONTENT","application/json"',
+	// 'AT+HTTPDATA=',
 	'AT+HTTPACTION=1',
 	'AT+HTTPREAD=0,'
 ];
@@ -94,7 +98,6 @@ const evaluatePost = (port, data) => {
 				write(port, currentCommand);
 				errorCount++;
 			} else {
-				POST_COMMANDS = [...POST_COMMANDS_RESET];
 				return false;
 			}
 			break;
