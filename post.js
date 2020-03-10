@@ -12,6 +12,7 @@ let POST_COMMANDS = [
 POST_COMMANDS_RESET = [...POST_COMMANDS];
 
 const post = (port, parser, pos) => {
+		POST_COMMANDS = [...POST_COMMANDS_RESET];
 		return new Promise((resolve, reject) => {
 			const { position, heading, speed, clear } = JSON.parse(pos);
 			postInterval = setInterval(post, MAXIMUM_SERVER_RESPONSE_TIME);
