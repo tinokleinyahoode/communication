@@ -6,14 +6,13 @@ let gps_error_count = 0;
 let coord, result;
 const port = null;
 const parser = null
-let parsePosition;
 
 const getPosition = (port, parser) => {
 	return new Promise((resolve, reject) => {
 		
 		write(port,GPS_COMMAND);
 
-		parsePosition = data => {
+		const parsePosition = data => {
 			let response = evaluate(port, data);
 			if (response === true) {
 				resolve(JSON.stringify(coord));
@@ -65,8 +64,6 @@ const evaluate = (port, data) => {
 				};
 			} else {
 				setTimeout(() => {
-					parser.removeListener('data', parsePosition);
-					parser.on('data', parsePosition);
 					write(port,GPS_COMMAND);
 				}, 5000);
 			}
