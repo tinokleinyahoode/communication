@@ -64,6 +64,8 @@ const evaluate = (port, data) => {
 				};
 			} else {
 				setTimeout(() => {
+					parser.removeListener('data', parsePosition);
+					parser.on('data', parsePosition);
 					write(port,GPS_COMMAND);
 				}, 5000);
 			}
