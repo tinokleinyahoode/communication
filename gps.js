@@ -16,6 +16,7 @@ const getPosition = (port, parser) => {
 			let response = evaluate(port, data);
 			if (response === true) {
 				resolve(JSON.stringify(coord));
+				coord = null;
 				parser.removeListener('data', parsePosition);
 			}
 		};
