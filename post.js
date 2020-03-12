@@ -20,7 +20,7 @@ const post = (port, parser, pos, url='"http://sea-drone-center.herokuapp.com/api
 			const { position, heading, speed, clear } = JSON.parse(pos);
 
 			// url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
-			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWU2OTgwYTRmODljMmYwYzkzNTA0YmJjIn0sImlhdCI6MTU4NDAxNjg2NywiZXhwIjoxNTg0MTAzMjY3fQ.inA6rG-3M4iBiwNBClUNTlanEfU2sGsUTpMU0x6PZnY"`;
+			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWU2OTgwYTRmODljMmYwYzkzNTA0YmJjIn0sImlhdCI6MTU4NDAxNzk1MiwiZXhwIjoxNTg0MTA0MzUyfQ.Y5gUImf4lO6Pyh-THPUJ2W9WWl3FFS5tk_hMFf-fA6E"`;
 
 			write(port, POST_COMMANDS[0] + url + queryString);
 
