@@ -15,12 +15,12 @@ let POST_COMMANDS = [
 
 POST_COMMANDS_RESET = [...POST_COMMANDS];
 
-const post = (port, parser, pos) => {
+const post = (port, parser, pos, url='"http://sea-drone-center.herokuapp.com/api/boats/1') => {
 		return new Promise((resolve, reject) => {
 			const { position, heading, speed, clear } = JSON.parse(pos);
 
-			url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
-			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}"`;
+			// url = '"http://sea-drone-center.herokuapp.com/api/boats/1';
+			queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWU2OTgwYTRmODljMmYwYzkzNTA0YmJjIn0sImlhdCI6MTU4NDAxNjg2NywiZXhwIjoxNTg0MTAzMjY3fQ.inA6rG-3M4iBiwNBClUNTlanEfU2sGsUTpMU0x6PZnY"`;
 
 			write(port, POST_COMMANDS[0] + url + queryString);
 
