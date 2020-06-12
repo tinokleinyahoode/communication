@@ -50,7 +50,7 @@ const evaluate = (port, data) => {
 			if(coord){
 				return true;
 			}
-			break;
+		break;
 		case '+CGNSINF:':
 			result = data.split(',');
 			if (result[3] != '') {
@@ -65,7 +65,7 @@ const evaluate = (port, data) => {
 					write(port,GPS_COMMAND);
 				}, 5000);
 			}
-			break;
+		break;
 		case 'ERROR':
 			if (gps_error_count < 5) {
 				gps_error_count++
@@ -73,7 +73,7 @@ const evaluate = (port, data) => {
 			}else{
 				return false;
 			}
-			break;
+		break;
 	}
 };
 
