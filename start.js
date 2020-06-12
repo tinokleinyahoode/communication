@@ -57,29 +57,27 @@ const includesAny = (string, arr) => {
 };
 
 const write = (cmd) => {
-	console.log('START >> ', cmd);
 	port.write(cmd + '\r\n');
 };
 
 const evaluateStart = (data) => {
-    console.log('START << ', data);
 
     if (startCount == 0) {
 		currentCommand = START_COMMANDS.shift();
 		startCount++;
     }
     
-    let availableResponses = ['OK', 'ERROR'];
+    const availableResponses = ['OK', 'ERROR'];
 	switch (includesAny(data, availableResponses)) {
         case 'OK':
             errorCount = 0;
 			if (START_COMMANDS.length != 0) {
-			currentCommand = START_COMMANDS.shift();
+				currentCommand = START_COMMANDS.shift();
 				write(currentCommand);
 			} else {
                 return true;
             }
-            break;
+        break;
         case 'ERROR':
             if (errorCount <= 5) {
                 write(currentCommand);
@@ -91,7 +89,7 @@ const evaluateStart = (data) => {
                     write(START_COMMANDS[0]);
                 })
             }
-            break;
+       	break;
     }
 }
 
