@@ -45,7 +45,7 @@ const start = () => {
 		};
 
 		parser.on('data', parseStart).on('error', errorStart);
-	});
+	}); 
 };
 
 const includesAny = (string, arr) => {
