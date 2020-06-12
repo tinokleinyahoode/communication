@@ -40,12 +40,10 @@ const includesAny = (string, arr) => {
 };
 
 const write = (port, cmd) => {
-	console.log('STOP >> ', cmd);
 	port.write(cmd + '\r\n');
 };
 
 const evaluateStop = (port, data) => {
-    console.log('STOP << ', data);
 
     if (startCount == 0) {
 		currentCommand = STOP_COMMANDS.shift();
