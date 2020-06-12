@@ -39,12 +39,10 @@ const includesAny = (string, arr) => {
 };
 
 const write = (port, cmd) => {
-	console.log('GPScmd >>', cmd);
 	port.write(cmd + '\r\n');
 };
 
 const evaluate = (port, data) => { 
-	console.log('GPSparse << ', data);
 	
 	const availableResponses = ['ERROR', '+CGNSINF:', 'OK']; 
 	switch (includesAny(data, availableResponses)) {
