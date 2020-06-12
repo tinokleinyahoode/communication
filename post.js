@@ -10,7 +10,7 @@ let POST_COMMANDS = [
 	'AT+HTTPREAD=0,'
 ];
 
-// additional POST_COMMANDS / Body transfer
+/* additional POST_COMMANDS / Body transfer */
 // 'AT+HTTPPARA="CID",1',
 // 'AT+HTTPPARA="CONTENT","application/json"',
 // 'AT+HTTPDATA=',	
@@ -21,7 +21,7 @@ const post = (port, parser, pos, url='"http://sea-drone-center.herokuapp.com/api
 	return new Promise((resolve, reject) => {
 		const { position, heading, speed, clear } = JSON.parse(pos);
 
-		queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWU2OTgwYTRmODljMmYwYzkzNTA0YmJjIn0sImlhdCI6MTU4NDAxNzk1MiwiZXhwIjoxNTg0MTA0MzUyfQ.Y5gUImf4lO6Pyh-THPUJ2W9WWl3FFS5tk_hMFf-fA6E"`;
+		const queryString = `?position=${position}&heading=${heading}&speed=${speed}&clear=${clear}&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWU2OTgwYTRmODljMmYwYzkzNTA0YmJjIn0sImlhdCI6MTU4NDAxNzk1MiwiZXhwIjoxNTg0MTA0MzUyfQ.Y5gUImf4lO6Pyh-THPUJ2W9WWl3FFS5tk_hMFf-fA6E"`;
 
 		write(port, POST_COMMANDS[0] + url + queryString);
 
@@ -66,7 +66,7 @@ const evaluatePost = (port, data) => {
 		startCount++;
 	}
 
-	let availableResponses = ['ERROR', '+HTTPACTION:', 'coordinates', 'OK'];
+	const availableResponses = ['ERROR', '+HTTPACTION:', 'coordinates', 'OK'];
 	switch (includesAny(data, availableResponses)) {
 		case 'OK':
 			if (currentCommand != 'AT+HTTPACTION=1') {
